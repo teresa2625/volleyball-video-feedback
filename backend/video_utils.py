@@ -35,6 +35,7 @@ def process_video(input_path, output_path):
 
     height, width, _ = first_frame.shape
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
+    frame_interval = int(fps * 0.5)
 
     if not output_path.endswith(".avi"):
         output_path = os.path.splitext(output_path)[0] + ".avi"
@@ -50,7 +51,7 @@ def process_video(input_path, output_path):
     csv_filename = os.path.splitext(output_path)[0] + "_feedback.csv"
     with open(csv_filename, mode='w', newline='', encoding='utf-8') as csv_file:
         csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(['Frame', 'Left Knee', 'Right Knee', 'Left Elbow', 'Right Elbow', 'Feedback'])
+        csv_writer.writerow(['Time (s)', 'Knee Angle', 'Elbow Angle', 'Feedback'])
 
         cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
@@ -121,8 +122,9 @@ def process_video(input_path, output_path):
                 frame[y:y+h, x:x+w] = roi
                 cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
+                timestamp = round(frame_count / fps, 2)
                 csv_writer.writerow([
-                    frame_count,
+                    timestamp,
                     f"{left_knee_angle:.1f}" if left_knee_angle else "",
                     f"{right_knee_angle:.1f}" if right_knee_angle else "",
                     f"{left_elbow_angle:.1f}" if left_elbow_angle else "",
@@ -134,7 +136,7 @@ def process_video(input_path, output_path):
                 print(f"⚠️ Tracking lost at frame {frame_count}.")
 
             out.write(frame)
-            frame_count += 1
+            frame_count += frame_interval
             if frame_count % 10 == 0:
                 print(f"🧮 Processed {frame_count} frames...")
 

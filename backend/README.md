@@ -2,8 +2,6 @@
 
 A Python-based video processor that lets you select a person in a video, tracks them using a bounding box, detects body poses with MediaPipe, and gives basic feedback based on joint angles like knee and elbow.
 
----
-
 ## 📦 Features
 
 - Person selection via bounding box
@@ -13,42 +11,39 @@ A Python-based video processor that lets you select a person in a video, tracks 
 - Output video with overlaid poses
 - Feedback CSV file export per frame
 
----
-
 ## 🧰 Requirements
 
 Make sure you have Python 3.7+ and install the dependencies:
 
-```bash
-pip install opencv-python mediapipe
+## Running the Backend
+
+1. Clone the repository:
+
+```
+git clone https://github.com/teresa2625/volleyball-video-feedback
+cd backend
 ```
 
----
-
-## 🚀 How to Run
+2. Install the dependencies:
 
 ```bash
-python main.py <input_video_path> <output_video_path>
+pip install -r requirements.txt
 ```
 
-Example:
+3. Start the backend server:
 
 ```bash
-python main.py input.mp4 output.avi
+uvicorn app:app --reload
 ```
-
----
 
 ## 📄 Output
 
 - A new video (`.avi`) with pose overlays and bounding box tracking
 - A CSV file (`output_feedback.csv`) with:
-  - Frame number
+  - Time number
   - Knee angle
   - Elbow angle
   - Feedback message
-
----
 
 ## 🧠 How It Works
 
@@ -59,8 +54,6 @@ python main.py input.mp4 output.avi
    - Angles are estimated (currently dummy values).
    - Feedback is written to a CSV.
 
----
-
 ## 📝 Notes
 
 - Knee and elbow angle calculations are placeholders. You can plug in your own logic in:
@@ -68,20 +61,17 @@ python main.py input.mp4 output.avi
   - `calculate_elbow_angle()`
 - The video is rotated 90° counterclockwise for processing.
 
----
-
 ## 🔧 File Structure
 
 ```
-project/
+backend/
 │
-├── main.py                # Main logic
+├── app.py
+├── video_utils.py         # Main logic
 ├── input.mp4              # Your input video (not included)
-├── output.avi             # Resulting video
+├── output.avi             # Resulting video (generated after processing)
 └── output_feedback.csv    # CSV feedback (generated after processing)
 ```
-
----
 
 ## 🧑‍💻 Todo
 
@@ -90,11 +80,3 @@ project/
 - ✅ Basic feedback logic
 - ❌ Real knee/elbow angle calculation
 - ❌ GUI for easier interaction
-
----
-
-## 🐛 Issues
-
-If you run into issues, feel free to open an issue or pull request. Contributions are welcome!
-
----
