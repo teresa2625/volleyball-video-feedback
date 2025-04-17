@@ -17,11 +17,11 @@ app.add_middleware(
 @app.post("/upload/")
 async def upload_video(file: UploadFile = File(...)):
     temp_filename = f"temp_{uuid.uuid4().hex}.mp4"
-    output_filename = f"output_{uuid.uuid4().hex}.avi"
+    output_filename = f"output_{uuid.uuid4().hex}.mp4"
 
     with open(temp_filename, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
     process_video(temp_filename, output_filename)
 
-    return FileResponse(output_filename, media_type="video/x-msvideo")
+    return FileResponse(output_filename, media_type="video/mp4")

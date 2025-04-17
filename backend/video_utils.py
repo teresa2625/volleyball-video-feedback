@@ -37,10 +37,10 @@ def process_video(input_path, output_path):
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     frame_interval = int(fps * 0.5)
 
-    if not output_path.endswith(".avi"):
-        output_path = os.path.splitext(output_path)[0] + ".avi"
+    if not output_path.endswith(".mp4"):
+        output_path = os.path.splitext(output_path)[0] + ".mp4"
 
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    fourcc = cv2.VideoWriter_fourcc(*'avc1')
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
     if not out.isOpened():
         raise ValueError("❌ Failed to initialize VideoWriter.")
@@ -137,11 +137,9 @@ def process_video(input_path, output_path):
 
             out.write(frame)
             frame_count += frame_interval
-            if frame_count % 10 == 0:
-                print(f"🧮 Processed {frame_count} frames...")
 
-        print(f"✅ Done. Total frames processed: {frame_count}")
-        print(f"🎬 Output saved to: {output_path}")
+    print(f"✅ Done. Total frames processed: {frame_count}")
+    print(f"🎬 Output saved to: {output_path}")
 
     cap.release()
     out.release()
