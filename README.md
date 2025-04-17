@@ -23,6 +23,7 @@ A Python-based video processor that lets you select a person in a video, tracks 
 
 ## Project Structure
 
+```
 volleyball-video-feedback/
 ├── backend/
 │ │
@@ -38,6 +39,7 @@ volleyball-video-feedback/
 │ │ └── api.ts # Axios API calls
 │ └── package.json
 └── README.md
+```
 
 ## Project Setup
 
