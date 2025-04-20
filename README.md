@@ -26,18 +26,23 @@ A Python-based video processor that lets you select a person in a video, tracks 
 ```
 volleyball-video-feedback/
 ├── backend/
-│ │
-│ ├── app.py
-│ ├── video_utils.py # FastAPI server
-│ ├── input.mp4 # Your input video (not included)
-│ ├── output.avi # Resulting video (generated after processing)
-│ ├── output_feedback.csv # CSV feedback (generated after processing)
-| └── requirements.txt # Dependencies
+│   ├── app.py
+│   ├── video_process/
+│   │   ├── processor.py      # main video logic
+│   │   └── tracker.py        # tracking and ROI logic
+│   ├── calculations/
+│   │   ├── angle.py          # angle calculations
+│   │   ├── jump.py           # jump detection
+│   │   └── spike.py          # spike analysis
+│   ├── input.mp4             # Your input video (not included)
+│   ├── output.mp4            # Resulting video (generated after processing)
+│   ├── output_feedback.csv   # CSV feedback (generated after processing)
+│   └── requirements.txt      # Dependencies
 ├── frontend/
-│ ├── src/
-│ │ ├── App.tsx # Upload form + video preview
-│ │ └── api.ts # Axios API calls
-│ └── package.json
+│   ├── src/
+│   │   ├── App.tsx # Upload form + video preview
+│   │   └── api.ts  # Axios API calls
+│   └── package.json
 └── README.md
 ```
 

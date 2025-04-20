@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import shutil
 import uuid
-from video_utils import process_video
+from video_process.processor import process_video
 
 app = FastAPI()
 

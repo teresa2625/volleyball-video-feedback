@@ -65,12 +65,18 @@ uvicorn app:app --reload
 
 ```
 backend/
-│
 ├── app.py
-├── video_utils.py         # Main logic
-├── input.mp4              # Your input video (not included)
-├── output.avi             # Resulting video (generated after processing)
-└── output_feedback.csv    # CSV feedback (generated after processing)
+├── video_process/
+│   ├── processor.py      # main video logic
+│   └── tracker.py        # tracking and ROI logic
+├── calculations/
+│   ├── angle.py          # angle calculations
+│   ├── jump.py           # jump detection
+│   └── spike.py          # spike analysis
+├── input.mp4             # Your input video (not included)
+├── output.mp4            # Resulting video (generated after processing)
+├── output_feedback.csv   # CSV feedback (generated after processing)
+└── requirements.txt      # Dependencies
 ```
 
 ## 🧑‍💻 Todo
