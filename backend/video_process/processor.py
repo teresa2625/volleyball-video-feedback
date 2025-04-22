@@ -2,6 +2,7 @@ import cv2
 import mediapipe as mp
 import os
 import csv
+import logging
 
 from video_process.tracker import initialize_tracker
 from calculations.jump import detect_jump
@@ -11,29 +12,58 @@ from calculations.angle import calculate_angle
 mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils
 
+logger = logging.getLogger(__name__)
+
+def rotate_frame(frame, angle):
+    if angle == 90:
+        return cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+    elif angle == 180:
+        return cv2.rotate(frame, cv2.ROTATE_180)
+    elif angle == 270:
+        return cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    return frame
 
 def process_video(input_path, output_path):
-    print(f"🔄 Starting processing for: {input_path}")
+    print("🟢 Script started", flush=True)
 
     cap = cv2.VideoCapture(input_path)
     if not cap.isOpened():
-        print("❌ Failed to open input video.")
+        logger.info("❌ Failed to open input video.")
         return
 
     success, first_frame = cap.read()
     if not success:
-        print("❌ Failed to read first frame.")
+        logger.info("❌ Failed to read first frame.")
         return
 
-    first_frame = cv2.rotate(first_frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    rotation_angle = 0
+    temp_frame = first_frame.copy()
+
+    print("🔁 Press 'r' to rotate clockwise, 'c' to confirm and continue, 'q' to quit.")
+    while True:
+        display_frame = rotate_frame(temp_frame, rotation_angle)
+        cv2.imshow("Select Rotation", display_frame)
+        key = cv2.waitKey(0) & 0xFF
+
+        if key == ord('r'):
+            rotation_angle = (rotation_angle + 90) % 360
+        elif key == ord('c'):
+            cv2.destroyWindow("Select Rotation")
+            break
+        elif key == ord('q'):
+            logger.info("❌ Rotation canceled by user.")
+            cv2.destroyWindow("Select Rotation")
+            cap.release()
+            return
+
+    first_frame = rotate_frame(first_frame, rotation_angle)
     tracker, bbox = initialize_tracker(first_frame)
 
     if bbox == (0, 0, 0, 0):
-        print("❌ No region selected.")
+        logger.info("❌ No region selected.")
         return
 
-    print(f"📦 Selected bounding box: {bbox}")
-
+    logger.info(f"📦 Selected bounding box: {bbox}")
     height, width, _ = first_frame.shape
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
 
@@ -58,10 +88,10 @@ def process_video(input_path, output_path):
     while True:
         ret, frame = cap.read()
         if not ret:
-            print("📥 No more frames to read. Exiting.")
+            logger.info("📥 No more frames to read. Exiting.")
             break
 
-        frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        frame = rotate_frame(frame, rotation_angle)
         success, bbox = tracker.update(frame)
 
         if success:
@@ -103,19 +133,19 @@ def process_video(input_path, output_path):
                         )
 
                 except Exception as e:
-                    print("⚠️ Landmark processing error:", e)
+                    logger.info(f"⚠️ Landmark processing error: {e}")
 
             frame[y:y+h, x:x+w] = roi
             cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
         else:
-            print(f"⚠️ Tracking lost at frame {frame_count}.")
+            logger.info(f"⚠️ Tracking lost at frame {frame_count}.")
 
         out.write(frame)
         frame_count += 1
 
-    print(f"✅ Done. Total frames processed: {frame_count}")
-    print(f"🎬 Output saved to: {output_path}")
+    logger.info(f"✅ Done. Total frames processed: {frame_count}")
+    logger.info(f"🎬 Output saved to: {output_path}")
 
     cap.release()
     out.release()
@@ -127,4 +157,4 @@ def process_video(input_path, output_path):
         for event in events:
             csv_writer.writerow(event)
 
-    print(f"📝 Feedback saved to: {csv_filename}")
+    logger.info(f"📝 Feedback saved to: {csv_filename}")
