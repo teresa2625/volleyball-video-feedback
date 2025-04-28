@@ -65,7 +65,9 @@ def process_video(input_path, output_path):
 
     logger.info(f"📦 Selected bounding box: {bbox}")
     height, width, _ = first_frame.shape
-    fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
+
+    original_fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
+    fps = original_fps / 2  # 🐢 Slower output video
 
     if not output_path.endswith(".mp4"):
         output_path = os.path.splitext(output_path)[0] + ".mp4"
