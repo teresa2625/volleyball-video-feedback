@@ -3,6 +3,9 @@ import mediapipe as mp
 import os
 import csv
 import logging
+import numpy as np
+import subprocess
+import json
 
 from video_process.tracker import initialize_tracker
 from calculations.jump import detect_jump
@@ -16,56 +19,59 @@ logger = logging.getLogger(__name__)
 
 def rotate_frame(frame, angle):
     if angle == 90:
-        return cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
-    elif angle == 180:
-        return cv2.rotate(frame, cv2.ROTATE_180)
-    elif angle == 270:
         return cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
     return frame
 
-def process_video(input_path, output_path):
-    print("🟢 Script started", flush=True)
+def get_video_rotation(path):
+    result = subprocess.run(
+        ['ffprobe', '-v', 'error', '-select_streams', 'v:0',
+         '-show_entries', 'stream_tags=rotate,side_data_list', '-of', 'json', path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    print("result.stdout", result.stdout)
+    metadata = json.loads(result.stdout)
+    
 
+    try:
+        rotation = metadata['streams'][0]['tags']['rotate']
+        print("rotation", rotation)
+        return int(rotation)
+    except KeyError:
+        try:
+            side_data = metadata['streams'][0]['side_data_list']
+            print("side_data", side_data)
+            if side_data:
+                return 90
+        except (KeyError, IndexError):
+            pass
+    return 0
+
+def process_video(input_path, output_path, bbox):
     cap = cv2.VideoCapture(input_path)
+    rotation = get_video_rotation(input_path)
+    print("rotation", rotation)
     if not cap.isOpened():
-        logger.info("❌ Failed to open input video.")
         return
-
     success, first_frame = cap.read()
     if not success:
         logger.info("❌ Failed to read first frame.")
         return
-
-    rotation_angle = 0
-    temp_frame = first_frame.copy()
-
-    print("🔁 Press 'r' to rotate clockwise, 'c' to confirm and continue, 'q' to quit.")
-    while True:
-        display_frame = rotate_frame(temp_frame, rotation_angle)
-        cv2.imshow("Select Rotation", display_frame)
-        key = cv2.waitKey(0) & 0xFF
-
-        if key == ord('r'):
-            rotation_angle = (rotation_angle + 90) % 360
-        elif key == ord('c'):
-            cv2.destroyWindow("Select Rotation")
-            break
-        elif key == ord('q'):
-            logger.info("❌ Rotation canceled by user.")
-            cv2.destroyWindow("Select Rotation")
-            cap.release()
-            return
-
-    first_frame = rotate_frame(first_frame, rotation_angle)
-    tracker, bbox = initialize_tracker(first_frame)
-
+    
+    if isinstance(bbox, dict):
+        bbox = (
+            int(bbox["x"]),
+            int(bbox["y"]),
+            int(bbox["w"]),
+            int(bbox["h"]),
+        )
+    first_frame = rotate_frame(first_frame, rotation)
+    tracker = initialize_tracker(first_frame, bbox)
     if bbox == (0, 0, 0, 0):
         logger.info("❌ No region selected.")
         return
-
-    logger.info(f"📦 Selected bounding box: {bbox}")
     height, width, _ = first_frame.shape
-
     original_fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     fps = original_fps / 2  # 🐢 Slower output video
 
@@ -93,7 +99,7 @@ def process_video(input_path, output_path):
             logger.info("📥 No more frames to read. Exiting.")
             break
 
-        frame = rotate_frame(frame, rotation_angle)
+        frame = rotate_frame(frame, rotation)
         success, bbox = tracker.update(frame)
 
         if success:
