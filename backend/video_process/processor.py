@@ -30,18 +30,16 @@ def get_video_rotation(path):
         stderr=subprocess.PIPE,
         text=True
     )
-    print("result.stdout", result.stdout)
+
     metadata = json.loads(result.stdout)
     
 
     try:
         rotation = metadata['streams'][0]['tags']['rotate']
-        print("rotation", rotation)
         return int(rotation)
     except KeyError:
         try:
             side_data = metadata['streams'][0]['side_data_list']
-            print("side_data", side_data)
             if side_data:
                 return 90
         except (KeyError, IndexError):
@@ -51,7 +49,6 @@ def get_video_rotation(path):
 def process_video(input_path, output_path, bbox):
     cap = cv2.VideoCapture(input_path)
     rotation = get_video_rotation(input_path)
-    print("rotation", rotation)
     if not cap.isOpened():
         return
     success, first_frame = cap.read()
